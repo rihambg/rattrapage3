@@ -11,7 +11,17 @@ import 'doctor_articles_tab.dart';
 import 'doctor_challenges_tab.dart';
 import 'doctor_chat_tab.dart';
 
-const String apiBase = "http://192.168.1.35:5000";
+const String apiBase = "http://192.168.1.36:5000";
+
+// --- App color scheme (matches login/register pages) ---
+const Color kPastelBlue = Color(0xFF2CA7A3);
+const Color kPastelGreen = Color(0xFF4B8246);
+const Color kPastelPeach = Color(0xFFEB7B64);
+const Color kPastelYellow = Color(0xFFD1AC00);
+const Color kPastelLilac = Color(0xFF7A5FA0);
+const Color kMutedDarkGreen = Color(0xFF297A6C);
+const Color kBG = Colors.white;
+const Color kCardBG = Color(0xFFF7F7F7);
 
 class DoctorHome extends StatefulWidget {
   final Map<String, dynamic> user;
@@ -100,11 +110,14 @@ class _DoctorHomeState extends State<DoctorHome>
             children: [
               Row(
                 children: [
-                  Icon(Icons.notifications, color: Colors.deepPurple, size: 28),
+                  Icon(Icons.notifications, color: kPastelLilac, size: 28),
                   const SizedBox(width: 10),
                   Text(
                     "Notifications",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 19),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 19,
+                        color: kMutedDarkGreen),
                   ),
                   Spacer(),
                   IconButton(
@@ -131,16 +144,16 @@ class _DoctorHomeState extends State<DoctorHome>
                           String type = n['type'] ?? '';
                           if (type == 'glucose') {
                             notifIcon = Icons.bloodtype;
-                            notifColor = Colors.red;
+                            notifColor = kPastelPeach;
                           } else if (type == 'message') {
                             notifIcon = Icons.chat_bubble_outline;
-                            notifColor = Colors.blue;
+                            notifColor = kPastelBlue;
                           } else if (type == 'appointment') {
                             notifIcon = Icons.calendar_today_outlined;
-                            notifColor = Colors.deepPurple;
+                            notifColor = kPastelLilac;
                           } else {
                             notifIcon = Icons.notifications;
-                            notifColor = Colors.deepPurple;
+                            notifColor = kMutedDarkGreen;
                           }
                           String ts = n['created_at'] ?? '';
                           String formattedTs = ts.isNotEmpty
@@ -149,11 +162,15 @@ class _DoctorHomeState extends State<DoctorHome>
                               : '';
                           return ListTile(
                             leading: Icon(notifIcon, color: notifColor),
-                            title: Text(n['title'] ?? ''),
+                            title: Text(n['title'] ?? '',
+                                style: TextStyle(color: kMutedDarkGreen)),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(n['body'] ?? ''),
+                                Text(n['body'] ?? '',
+                                    style: TextStyle(
+                                        color:
+                                            kMutedDarkGreen.withOpacity(0.8))),
                                 if (formattedTs.isNotEmpty)
                                   Text(formattedTs,
                                       style: TextStyle(
@@ -163,7 +180,7 @@ class _DoctorHomeState extends State<DoctorHome>
                             ),
                             trailing: n['read'] == 0 || n['read'] == false
                                 ? Icon(Icons.circle,
-                                    color: Colors.red, size: 12)
+                                    color: kPastelPeach, size: 12)
                                 : null,
                           );
                         },
@@ -200,10 +217,19 @@ class _DoctorHomeState extends State<DoctorHome>
 
   Widget _tabButton(IconData icon, String label, int index) {
     final bool isSelected = tabController.index == index;
+    // Assign a different pastel color to each tab
+    final List<Color> tabColors = [
+      kPastelBlue,
+      kPastelGreen,
+      kPastelPeach,
+      kPastelLilac,
+      kPastelYellow,
+      kMutedDarkGreen,
+    ];
     final bgColor =
-        isSelected ? Colors.deepPurple : Colors.deepPurple.withOpacity(0.1);
-    final textColor = isSelected ? Colors.white : Colors.deepPurple;
-    final iconColor = isSelected ? Colors.white : Colors.deepPurple;
+        isSelected ? tabColors[index] : tabColors[index].withOpacity(0.10);
+    final textColor = isSelected ? Colors.white : tabColors[index];
+    final iconColor = isSelected ? Colors.white : tabColors[index];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4.0),
@@ -231,21 +257,21 @@ class _DoctorHomeState extends State<DoctorHome>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: kBG,
       appBar: AppBar(
         elevation: 2,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.deepPurple,
+        backgroundColor: kBG,
+        foregroundColor: kMutedDarkGreen,
         title: Row(
           children: [
-            Icon(Icons.medical_services, color: Colors.deepPurple, size: 28),
+            Icon(Icons.medical_services, color: kMutedDarkGreen, size: 28),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 "Welcome, ${widget.user['name']} (${widget.user['role']})",
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  color: Colors.deepPurple,
+                  color: kMutedDarkGreen,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -258,7 +284,7 @@ class _DoctorHomeState extends State<DoctorHome>
             children: [
               IconButton(
                 icon: Icon(Icons.notifications_none,
-                    color: Colors.deepPurple, size: 28),
+                    color: kPastelLilac, size: 28),
                 tooltip: 'Notifications',
                 onPressed: () {
                   openNotificationsPanel();
@@ -273,7 +299,7 @@ class _DoctorHomeState extends State<DoctorHome>
                     width: 12,
                     height: 12,
                     decoration: BoxDecoration(
-                      color: Colors.red,
+                      color: kPastelPeach,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -283,14 +309,14 @@ class _DoctorHomeState extends State<DoctorHome>
           IconButton(
             icon: Icon(
               Icons.account_circle,
-              color: Colors.deepPurple,
+              color: kPastelGreen,
               size: 30,
             ),
             tooltip: 'Profile',
             onPressed: showProfileDialog,
           ),
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.red, size: 28),
+            icon: const Icon(Icons.logout, color: kPastelPeach, size: 28),
             tooltip: 'Logout',
             onPressed: () => Navigator.pushReplacementNamed(context, '/'),
           ),

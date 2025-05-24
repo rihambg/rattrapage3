@@ -3,13 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 
-import '../patient_home.dart';
+import '../patient_home_type1type2.dart';
+import '../patient_home_prediabetes.dart';
+import '../patient_home_gestational.dart';
 
-const String apiBase = "http://192.168.1.35:5000";
+const String apiBase = "http://192.168.1.36:5000";
 
 class MedicationsTab extends StatefulWidget {
   final Map<String, dynamic> user;
-  const MedicationsTab({required this.user});
+  final String? diabetesType;
+  const MedicationsTab({required this.user, this.diabetesType, Key? key})
+      : super(key: key);
+
   @override
   State<MedicationsTab> createState() => _MedicationsTabState();
 }
@@ -106,7 +111,6 @@ class _MedicationsTabState extends State<MedicationsTab> {
                 headers: {'Content-Type': 'application/json'},
                 body: jsonEncode({
                   "dosage": doseCtrl.text,
-                  // you can send other fields if needed
                 }),
               );
               Navigator.pop(ctx);
@@ -116,6 +120,11 @@ class _MedicationsTabState extends State<MedicationsTab> {
         ],
       ),
     );
+  }
+
+  // FIX: Just pop back, don't push or replace!
+  void goToCorrectHome(BuildContext context) {
+    Navigator.pop(context);
   }
 
   @override
@@ -133,12 +142,7 @@ class _MedicationsTabState extends State<MedicationsTab> {
           icon: Icon(Icons.arrow_back),
           tooltip: 'Back to Home',
           onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => PatientHome(user: widget.user),
-              ),
-            );
+            goToCorrectHome(context);
           },
         ),
         title: Text('Medications Tab'),

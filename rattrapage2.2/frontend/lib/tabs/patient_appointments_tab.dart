@@ -3,13 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-import '../patient_home.dart';
+import '../patient_home_type1type2.dart';
+import '../patient_home_prediabetes.dart';
+import '../patient_home_gestational.dart';
 
-const String apiBase = "http://192.168.1.35:5000";
+const String apiBase = "http://192.168.1.36:5000";
 
 class PatientAppointmentsTab extends StatefulWidget {
   final int patientId;
-  const PatientAppointmentsTab({required this.patientId, Key? key})
+  final String? diabetesType;
+  const PatientAppointmentsTab(
+      {required this.patientId, this.diabetesType, Key? key})
       : super(key: key);
 
   @override
@@ -76,6 +80,8 @@ class _PatientAppointmentsTabState extends State<PatientAppointmentsTab> {
     await fetchAppointments();
   }
 
+  // No need for goToCorrectHome if using pop!
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,12 +91,7 @@ class _PatientAppointmentsTabState extends State<PatientAppointmentsTab> {
           icon: Icon(Icons.arrow_back),
           tooltip: 'Back to Home',
           onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => PatientHome(user: {'id': widget.patientId}),
-              ),
-            );
+            Navigator.pop(context); // <-- Just pop. Don't push or replace!
           },
         ),
         title: Text('My Appointments'),

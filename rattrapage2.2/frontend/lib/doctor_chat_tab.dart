@@ -2,7 +2,17 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-const String apiBase = "http://192.168.1.35:5000";
+const String apiBase = "http://192.168.1.36:5000";
+
+// --- App color scheme (matches all pages) ---
+const Color kPastelBlue = Color(0xFF2CA7A3);
+const Color kPastelGreen = Color(0xFF4B8246);
+const Color kPastelPeach = Color(0xFFEB7B64);
+const Color kPastelYellow = Color(0xFFD1AC00);
+const Color kPastelLilac = Color(0xFF7A5FA0);
+const Color kMutedDarkGreen = Color(0xFF297A6C);
+const Color kBG = Colors.white;
+const Color kCardBG = Color(0xFFF7F7F7);
 
 class DoctorChatTab extends StatefulWidget {
   final Map<String, dynamic> doctor;
@@ -71,16 +81,39 @@ class _DoctorChatTabState extends State<DoctorChatTab> {
     fetchMessages();
   }
 
+  // Assign pastel colors to patient avatars in a cyclic fashion
+  Color _avatarBgColor(int idx) {
+    final colors = [
+      kPastelBlue,
+      kPastelPeach,
+      kPastelGreen,
+      kPastelLilac,
+      kPastelYellow,
+    ];
+    return colors[idx % colors.length].withOpacity(0.13);
+  }
+
+  Color _avatarIconColor(int idx) {
+    final colors = [
+      kPastelBlue,
+      kPastelPeach,
+      kPastelGreen,
+      kPastelLilac,
+      kPastelYellow,
+    ];
+    return colors[idx % colors.length];
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.selectedPatient == null) {
       return Container(
-        color: Colors.deepPurple[50],
+        color: kBG,
         child: Center(
           child: Text(
             "Select a patient from Patients tab to chat.",
             style: TextStyle(
-              color: Colors.deepPurple[200],
+              color: kMutedDarkGreen.withOpacity(0.36),
               fontWeight: FontWeight.w600,
               fontSize: 18,
             ),
@@ -90,9 +123,9 @@ class _DoctorChatTabState extends State<DoctorChatTab> {
     }
 
     return Container(
-      color: Colors.deepPurple[50],
+      color: kBG,
       child: Padding(
-        padding: EdgeInsets.all(18),
+        padding: const EdgeInsets.all(18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -100,80 +133,83 @@ class _DoctorChatTabState extends State<DoctorChatTab> {
               children: [
                 CircleAvatar(
                   radius: 22,
-                  backgroundColor: Colors.deepPurple[100],
-                  child: Icon(Icons.person, color: Colors.deepPurple[600]),
+                  backgroundColor: kPastelGreen.withOpacity(0.17),
+                  child: Icon(Icons.person, color: kPastelGreen, size: 28),
                 ),
-                SizedBox(width: 14),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Text(
                     "Chat with ${widget.selectedPatient!['name']}",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 19,
-                      color: Colors.deepPurple[900],
+                      color: kMutedDarkGreen,
                     ),
                   ),
                 ),
                 if (widget.onChatClosed != null)
                   IconButton(
-                    icon: Icon(Icons.close, color: Colors.deepPurple),
+                    icon: Icon(Icons.close, color: kPastelPeach),
                     tooltip: "Close chat",
                     onPressed: widget.onChatClosed,
                   ),
               ],
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Expanded(
-              child:
-                  loadingMessages
-                      ? Center(child: CircularProgressIndicator())
-                      : ListView.builder(
-                        reverse: true,
-                        itemCount: messages.length,
-                        itemBuilder: (context, idx) {
-                          final m = messages[messages.length - 1 - idx];
-                          final isMe = m['sender_id'] == widget.doctor['id'];
-                          return Align(
-                            alignment:
-                                isMe
-                                    ? Alignment.centerRight
-                                    : Alignment.centerLeft,
-                            child: Container(
-                              margin: EdgeInsets.symmetric(
-                                vertical: 3,
-                                horizontal: 6,
+              child: loadingMessages
+                  ? Center(
+                      child: CircularProgressIndicator(color: kMutedDarkGreen))
+                  : ListView.builder(
+                      reverse: true,
+                      itemCount: messages.length,
+                      itemBuilder: (context, idx) {
+                        final m = messages[messages.length - 1 - idx];
+                        final isMe = m['sender_id'] == widget.doctor['id'];
+                        return Align(
+                          alignment: isMe
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(
+                              vertical: 3,
+                              horizontal: 6,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 10,
+                              horizontal: 15,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isMe
+                                  ? kPastelBlue.withOpacity(0.14)
+                                  : kCardBG,
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(isMe ? 16 : 6),
+                                topRight: Radius.circular(isMe ? 6 : 16),
+                                bottomLeft: const Radius.circular(13),
+                                bottomRight: const Radius.circular(13),
                               ),
-                              padding: EdgeInsets.symmetric(
-                                vertical: 10,
-                                horizontal: 15,
-                              ),
-                              decoration: BoxDecoration(
-                                color:
-                                    isMe
-                                        ? Colors.deepPurple[100]
-                                        : Colors.grey[300],
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.deepPurple.withOpacity(0.06),
-                                    blurRadius: 6,
-                                    spreadRadius: 1,
-                                  ),
-                                ],
-                              ),
-                              child: Text(
-                                m['message'],
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: Colors.deepPurple[900],
-                                  fontWeight:
-                                      isMe ? FontWeight.w600 : FontWeight.w500,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: kMutedDarkGreen.withOpacity(0.04),
+                                  blurRadius: 6,
+                                  spreadRadius: 1,
                                 ),
+                              ],
+                            ),
+                            child: Text(
+                              m['message'],
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: kMutedDarkGreen,
+                                fontWeight:
+                                    isMe ? FontWeight.w600 : FontWeight.w500,
                               ),
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        );
+                      },
+                    ),
             ),
             Row(
               children: [
@@ -182,28 +218,37 @@ class _DoctorChatTabState extends State<DoctorChatTab> {
                     controller: chatCtrl,
                     decoration: InputDecoration(
                       hintText: "Type your message...",
+                      hintStyle:
+                          TextStyle(color: kMutedDarkGreen.withOpacity(0.41)),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                            color: kMutedDarkGreen.withOpacity(0.13)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: kPastelBlue, width: 2),
                       ),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: kCardBG,
                       contentPadding: EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 8,
                       ),
                     ),
+                    style: TextStyle(color: kMutedDarkGreen),
                     onSubmitted: (_) => sendMessage(),
                   ),
                 ),
-                SizedBox(width: 10),
+                const SizedBox(width: 10),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
+                    backgroundColor: kPastelBlue,
                     foregroundColor: Colors.white,
-                    shape: CircleBorder(),
-                    padding: EdgeInsets.all(12),
+                    shape: const CircleBorder(),
+                    padding: const EdgeInsets.all(12),
                   ),
-                  child: Icon(Icons.send),
+                  child: const Icon(Icons.send),
                   onPressed: sendMessage,
                 ),
               ],

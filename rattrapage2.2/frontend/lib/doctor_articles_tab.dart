@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-const String apiBase = "http://192.168.1.35:5000";
+const String apiBase = "http://192.168.1.36:5000";
 
 class DoctorArticlesTab extends StatefulWidget {
   final Map<String, dynamic> user;

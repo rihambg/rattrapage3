@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : ven. 23 mai 2025 à 03:23
+-- Généré le : sam. 24 mai 2025 à 07:29
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.2.12
 
@@ -259,6 +259,44 @@ CREATE TABLE `physical_activities` (
 -- --------------------------------------------------------
 
 --
+-- Structure de la table `pregnancy_info`
+--
+
+CREATE TABLE `pregnancy_info` (
+  `user_id` int(11) NOT NULL,
+  `lmp_date` date DEFAULT NULL,
+  `edd` date DEFAULT NULL,
+  `edd_source` varchar(32) DEFAULT 'LMP'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `pregnancy_kicks`
+--
+
+CREATE TABLE `pregnancy_kicks` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `timestamp` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `pregnancy_notes`
+--
+
+CREATE TABLE `pregnancy_notes` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `note` text DEFAULT NULL,
+  `timestamp` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Structure de la table `preset_meals`
 --
 
@@ -436,6 +474,24 @@ ALTER TABLE `physical_activities`
   ADD KEY `user_id` (`user_id`);
 
 --
+-- Index pour la table `pregnancy_info`
+--
+ALTER TABLE `pregnancy_info`
+  ADD PRIMARY KEY (`user_id`);
+
+--
+-- Index pour la table `pregnancy_kicks`
+--
+ALTER TABLE `pregnancy_kicks`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Index pour la table `pregnancy_notes`
+--
+ALTER TABLE `pregnancy_notes`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Index pour la table `preset_meals`
 --
 ALTER TABLE `preset_meals`
@@ -488,25 +544,25 @@ ALTER TABLE `challenges`
 -- AUTO_INCREMENT pour la table `faqs`
 --
 ALTER TABLE `faqs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT pour la table `glucose_logs`
 --
 ALTER TABLE `glucose_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT pour la table `meals`
 --
 ALTER TABLE `meals`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT pour la table `medications`
 --
 ALTER TABLE `medications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1024;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1027;
 
 --
 -- AUTO_INCREMENT pour la table `medication_changes`
@@ -518,19 +574,31 @@ ALTER TABLE `medication_changes`
 -- AUTO_INCREMENT pour la table `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT pour la table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT pour la table `physical_activities`
 --
 ALTER TABLE `physical_activities`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT pour la table `pregnancy_kicks`
+--
+ALTER TABLE `pregnancy_kicks`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT pour la table `pregnancy_notes`
+--
+ALTER TABLE `pregnancy_notes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT pour la table `preset_meals`
@@ -542,7 +610,7 @@ ALTER TABLE `preset_meals`
 -- AUTO_INCREMENT pour la table `reminders`
 --
 ALTER TABLE `reminders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT pour la table `specialties`
@@ -554,7 +622,7 @@ ALTER TABLE `specialties`
 -- AUTO_INCREMENT pour la table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=220;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=244;
 
 --
 -- Contraintes pour les tables déchargées

@@ -3,11 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:google_fonts/google_fonts.dart';
 
-import '../patient_home.dart';
+import '../patient_home_type1type2.dart';
+import '../patient_home_prediabetes.dart';
+import '../patient_home_gestational.dart';
+
+const String apiBase = "http://192.168.1.36:5000";
 
 class ChallengesTab extends StatefulWidget {
   final Map<String, dynamic> user;
-  const ChallengesTab({required this.user, super.key});
+  final String? diabetesType;
+  const ChallengesTab({required this.user, this.diabetesType, super.key});
 
   @override
   State<ChallengesTab> createState() => _ChallengesTabState();
@@ -66,86 +71,108 @@ class _ChallengesTabState extends State<ChallengesTab> {
     fetchMyChallenges();
   }
 
+  // FIX: Just pop back, don't push or replace!
+  void goToCorrectHome(BuildContext context) {
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: loadingChallenges
-          ? const Center(child: CircularProgressIndicator(color: Colors.orange))
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSectionHeader(
-                  icon: Icons.flag,
-                  title: "Available Challenges",
-                  color: Colors.orange[700]!,
-                ),
-                const SizedBox(height: 12),
-                Expanded(
-                  flex: 2,
-                  child: challenges.isEmpty
-                      ? Center(
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          tooltip: 'Back to Home',
+          onPressed: () {
+            goToCorrectHome(context);
+          },
+        ),
+        title: Text('Challenges'),
+        backgroundColor: Colors.orange,
+        foregroundColor: Colors.white,
+        elevation: 1,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: loadingChallenges
+            ? const Center(
+                child: CircularProgressIndicator(color: Colors.orange))
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionHeader(
+                    icon: Icons.flag,
+                    title: "Available Challenges",
+                    color: Colors.orange[700]!,
+                  ),
+                  const SizedBox(height: 12),
+                  Expanded(
+                    flex: 2,
+                    child: challenges.isEmpty
+                        ? Center(
+                            child: Text(
+                              "No challenges available.",
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          )
+                        : ListView.separated(
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 12),
+                            itemCount: challenges.length,
+                            itemBuilder: (context, i) {
+                              final c = challenges[i];
+                              final joined =
+                                  myChallenges.any((mc) => mc['id'] == c['id']);
+                              return ChallengeCard(
+                                challenge: c,
+                                joined: joined,
+                                onJoin: () => joinChallenge(c['id']),
+                                onLeave: () => leaveChallenge(c['id']),
+                              );
+                            },
+                          ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildSectionHeader(
+                    icon: Icons.emoji_events,
+                    title: "Your Challenges",
+                    color: Colors.green[700]!,
+                  ),
+                  const SizedBox(height: 12),
+                  myChallenges.isEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                           child: Text(
-                            "No challenges available.",
+                            "Not participating in any challenges.",
                             style: GoogleFonts.poppins(
-                              fontSize: 16,
+                              fontSize: 14,
                               color: Colors.grey[600],
                             ),
                           ),
                         )
-                      : ListView.separated(
-                          separatorBuilder: (_, __) => const SizedBox(height: 12),
-                          itemCount: challenges.length,
-                          itemBuilder: (context, i) {
-                            final c = challenges[i];
-                            final joined =
-                                myChallenges.any((mc) => mc['id'] == c['id']);
-                            return ChallengeCard(
-                              challenge: c,
-                              joined: joined,
-                              onJoin: () => joinChallenge(c['id']),
-                              onLeave: () => leaveChallenge(c['id']),
-                            );
-                          },
-                        ),
-                ),
-                const SizedBox(height: 16),
-                _buildSectionHeader(
-                  icon: Icons.emoji_events,
-                  title: "Your Challenges",
-                  color: Colors.green[700]!,
-                ),
-                const SizedBox(height: 12),
-                myChallenges.isEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: Text(
-                          "Not participating in any challenges.",
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      )
-                    : SizedBox(
-                        height: 140,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          physics: const BouncingScrollPhysics(),
-                          itemCount: myChallenges.length,
-                          itemBuilder: (context, idx) => SizedBox(
-                            width: 280,
-                            child: MyChallengeBadge(
-                              mc: myChallenges[idx],
-                              onLeave: () =>
-                                  leaveChallenge(myChallenges[idx]['id']),
+                      : SizedBox(
+                          height: 140,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            physics: const BouncingScrollPhysics(),
+                            itemCount: myChallenges.length,
+                            itemBuilder: (context, idx) => SizedBox(
+                              width: 280,
+                              child: MyChallengeBadge(
+                                mc: myChallenges[idx],
+                                onLeave: () =>
+                                    leaveChallenge(myChallenges[idx]['id']),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                const SizedBox(height: 8),
-              ],
-            ),
+                  const SizedBox(height: 8),
+                ],
+              ),
+      ),
     );
   }
 
@@ -222,7 +249,8 @@ class ChallengeCard extends StatelessWidget {
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
-                            color: joined ? Colors.green[900] : Colors.orange[900],
+                            color:
+                                joined ? Colors.green[900] : Colors.orange[900],
                           ),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
@@ -235,7 +263,8 @@ class ChallengeCard extends StatelessWidget {
                         child: joined
                             ? TextButton.icon(
                                 onPressed: onLeave,
-                                icon: const Icon(Icons.logout, size: 18, color: Colors.red),
+                                icon: const Icon(Icons.logout,
+                                    size: 18, color: Colors.red),
                                 label: Text(
                                   "Leave",
                                   style: GoogleFonts.poppins(color: Colors.red),
@@ -369,7 +398,8 @@ class MyChallengeBadge extends StatelessWidget {
                     scale: 1.0,
                     duration: const Duration(milliseconds: 200),
                     child: IconButton(
-                      icon: const Icon(Icons.logout, color: Colors.red, size: 18),
+                      icon:
+                          const Icon(Icons.logout, color: Colors.red, size: 18),
                       tooltip: "Leave Challenge",
                       onPressed: onLeave,
                       style: IconButton.styleFrom(

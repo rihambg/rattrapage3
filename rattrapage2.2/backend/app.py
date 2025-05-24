@@ -151,12 +151,22 @@ def login():
     user = get_user_by_email(email)
     if not user or not check_password_hash(user["password_hash"], password):
         return jsonify({"error": "Invalid credentials"}), 401
-    return jsonify({
+    result = {
         "id": user["id"],
         "name": user["name"],
         "role": user["role"],
         "email": user["email"]
-    })
+    }
+    # If patient, add diabetes_type for frontend navigation
+    if user["role"] == "patient":
+        db = get_db()
+        c = db.cursor(dictionary=True)
+        c.execute("SELECT diabetes_type FROM patients WHERE user_id = %s", (user["id"],))
+        p = c.fetchone()
+        result["diabetes_type"] = (p or {}).get("diabetes_type", "")
+        c.close()
+        db.close()
+    return jsonify(result)
 
 # --- Patient Profile ---
 @app.route("/patient_profile/<int:user_id>", methods=["GET"])
@@ -1090,6 +1100,74 @@ def mark_notifications_read(user_id):
     cur.close()
     db.close()
     return jsonify({"message": "All notifications marked as read"})
+# Pregnancy Info CRUD
+@app.route("/pregnancy/<int:user_id>", methods=["GET"])
+def get_pregnancy_info(user_id):
+    db = get_db()
+    c = db.cursor(dictionary=True)
+    c.execute("SELECT lmp_date, edd, edd_source FROM pregnancy_info WHERE user_id=%s", (user_id,))
+    row = c.fetchone()
+    c.close()
+    db.close()
+    return jsonify(row or {})
 
+@app.route("/pregnancy/<int:user_id>", methods=["POST"])
+def save_pregnancy_info(user_id):
+    data = request.json
+    lmp_date = data.get("lmp_date")
+    edd = data.get("edd")
+    edd_source = data.get("edd_source", "LMP")
+    db = get_db()
+    c = db.cursor()
+    c.execute("REPLACE INTO pregnancy_info (user_id, lmp_date, edd, edd_source) VALUES (%s, %s, %s, %s)",
+              (user_id, lmp_date, edd, edd_source))
+    db.commit()
+    c.close()
+    db.close()
+    return jsonify({"message": "Saved"})
+
+# Fetal Notes CRUD
+@app.route("/pregnancy/<int:user_id>/notes", methods=["GET"])
+def get_pregnancy_notes(user_id):
+    db = get_db()
+    c = db.cursor(dictionary=True)
+    c.execute("SELECT note, timestamp FROM pregnancy_notes WHERE user_id=%s ORDER BY timestamp DESC LIMIT 20", (user_id,))
+    notes = c.fetchall()
+    c.close()
+    db.close()
+    return jsonify(notes)
+
+@app.route("/pregnancy/<int:user_id>/notes", methods=["POST"])
+def add_pregnancy_note(user_id):
+    data = request.json
+    note = data.get("note")
+    db = get_db()
+    c = db.cursor()
+    c.execute("INSERT INTO pregnancy_notes (user_id, note) VALUES (%s, %s)", (user_id, note))
+    db.commit()
+    c.close()
+    db.close()
+    return jsonify({"message": "Note added"})
+
+# Kick Counter
+@app.route("/pregnancy/<int:user_id>/kicks", methods=["GET"])
+def get_kicks(user_id):
+    db = get_db()
+    c = db.cursor(dictionary=True)
+    c.execute("SELECT timestamp FROM pregnancy_kicks WHERE user_id=%s ORDER BY timestamp DESC LIMIT 100", (user_id,))
+    kicks = c.fetchall()
+    c.close()
+    db.close()
+    return jsonify(kicks)
+
+@app.route("/pregnancy/<int:user_id>/kicks", methods=["POST"])
+def add_kick(user_id):
+    db = get_db()
+    c = db.cursor()
+    c.execute("INSERT INTO pregnancy_kicks (user_id) VALUES (%s)", (user_id,))
+    db.commit()
+    c.close()
+    db.close()
+    return jsonify({"message": "Kick recorded"})
 if __name__ == "__main__":
     app.run(host="0.0.0.0")

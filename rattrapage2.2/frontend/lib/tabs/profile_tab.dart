@@ -4,11 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
-import '../patient_home.dart';
+import '../patient_home_type1type2.dart';
+import '../patient_home_prediabetes.dart';
+import '../patient_home_gestational.dart';
+
+const String apiBase = "http://192.168.1.36:5000";
 
 class ProfileTab extends StatefulWidget {
   final Map<String, dynamic> user;
-  const ProfileTab({required this.user});
+  final String? diabetesType;
+  const ProfileTab({required this.user, this.diabetesType, Key? key})
+      : super(key: key);
+
   @override
   State<ProfileTab> createState() => _ProfileTabState();
 }
@@ -140,6 +147,11 @@ class _ProfileTabState extends State<ProfileTab> {
     setState(() => loading = false);
   }
 
+  // FIX: Just pop back, don't push or replace!
+  void goToCorrectHome(BuildContext context) {
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     if (loading && profile == null)
@@ -166,7 +178,7 @@ class _ProfileTabState extends State<ProfileTab> {
           left: 12,
           child: IconButton(
             icon: Icon(Icons.arrow_back, size: 30, color: Colors.grey[700]),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => goToCorrectHome(context),
             tooltip: "Back",
           ),
         ),
@@ -332,7 +344,6 @@ class _ProfileTabState extends State<ProfileTab> {
             onChanged: (v) => setState(() => gender = v!),
           ),
           SizedBox(height: 12),
-          // FIXED: Explicit <String> for DropdownMenuItem and value/country name extraction
           DropdownButtonFormField<String>(
             value: country.isNotEmpty ? country : null,
             isExpanded: true,

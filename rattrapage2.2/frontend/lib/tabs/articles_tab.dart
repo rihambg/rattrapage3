@@ -2,10 +2,23 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-import '../patient_home.dart';
+// Remove the direct patient_home import
+// import '../patient_home.dart';
+
+// Instead, import all the possible homes
+import '../patient_home_type1type2.dart';
+import '../patient_home_prediabetes.dart';
+import '../patient_home_gestational.dart';
+
 import '../article_view_page.dart';
 
+const String apiBase = "http://192.168.1.36:5000";
+
 class ArticlesTab extends StatefulWidget {
+  final Map<String, dynamic>? user;
+  final String? diabetesType;
+  const ArticlesTab({this.user, this.diabetesType, Key? key}) : super(key: key);
+
   @override
   State<ArticlesTab> createState() => _ArticlesTabState();
 }
@@ -40,27 +53,50 @@ class _ArticlesTabState extends State<ArticlesTab> {
     );
   }
 
+  // FIX: Just pop back, don't push or replace!
+  void goToCorrectHome(BuildContext context) {
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(18),
-      child: loadingArticles
-          ? Center(child: CircularProgressIndicator())
-          : articles.isEmpty
-              ? Center(
-                  child: Text("No articles found.",
-                      style: TextStyle(fontSize: 18, color: Colors.grey[600])))
-              : ListView.separated(
-                  itemCount: articles.length,
-                  separatorBuilder: (_, __) => SizedBox(height: 18),
-                  itemBuilder: (context, idx) {
-                    final a = articles[idx];
-                    return ArticleCard(
-                      article: a,
-                      onTap: () => openArticle(a),
-                    );
-                  },
-                ),
+    return Scaffold(
+      appBar: widget.user == null
+          ? null
+          : AppBar(
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back),
+                tooltip: 'Back to Home',
+                onPressed: () {
+                  goToCorrectHome(context);
+                },
+              ),
+              title: Text('Articles'),
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+              elevation: 1,
+            ),
+      body: Padding(
+        padding: EdgeInsets.all(18),
+        child: loadingArticles
+            ? Center(child: CircularProgressIndicator())
+            : articles.isEmpty
+                ? Center(
+                    child: Text("No articles found.",
+                        style:
+                            TextStyle(fontSize: 18, color: Colors.grey[600])))
+                : ListView.separated(
+                    itemCount: articles.length,
+                    separatorBuilder: (_, __) => SizedBox(height: 18),
+                    itemBuilder: (context, idx) {
+                      final a = articles[idx];
+                      return ArticleCard(
+                        article: a,
+                        onTap: () => openArticle(a),
+                      );
+                    },
+                  ),
+      ),
     );
   }
 }

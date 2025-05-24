@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-const String apiBase = "http://192.168.1.35:5000";
+const String apiBase = "http://192.168.1.36:5000";
 
 class DoctorProfileDialog extends StatelessWidget {
   final Map<String, dynamic>? doctorProfile;
@@ -142,26 +142,26 @@ class DoctorProfileDialog extends StatelessWidget {
   }
 
   List<Widget> _infoRow(String label, String? value) => [
-    const SizedBox(height: 6),
-    Row(
-      children: [
-        Text(
-          "$label: ",
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            color: Colors.deepPurple,
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value ?? "-",
-            style: TextStyle(
-              color: Colors.deepPurple[700],
-              fontWeight: FontWeight.w500,
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            Text(
+              "$label: ",
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.deepPurple,
+              ),
             ),
-          ),
+            Expanded(
+              child: Text(
+                value ?? "-",
+                style: TextStyle(
+                  color: Colors.deepPurple[700],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
         ),
-      ],
-    ),
-  ];
+      ];
 }

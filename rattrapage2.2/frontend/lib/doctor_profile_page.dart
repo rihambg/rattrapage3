@@ -25,7 +25,7 @@ class _DoctorProfilePageState extends State<DoctorProfilePage> {
   void fetchDoctorProfile() async {
     setState(() => loading = true);
     final res = await http.get(
-      Uri.parse("http://192.168.1.35:5000/doctor_profile/${widget.doctorId}"),
+      Uri.parse("http://192.168.1.36:5000/doctor_profile/${widget.doctorId}"),
     );
     if (!mounted) return;
     if (res.statusCode == 200) {

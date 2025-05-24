@@ -4,11 +4,20 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import 'package:fl_chart/fl_chart.dart';
 
-import '../patient_home.dart';
+// Instead, import all the possible homes
+import '../patient_home_type1type2.dart';
+import '../patient_home_prediabetes.dart';
+import '../patient_home_gestational.dart';
+
+const String apiBase = "http://192.168.1.36:5000";
 
 class PhysicalActivityTab extends StatefulWidget {
   final Map<String, dynamic> user;
-  const PhysicalActivityTab({required this.user});
+  final String? diabetesType; // <-- add this
+
+  const PhysicalActivityTab({required this.user, this.diabetesType, Key? key})
+      : super(key: key);
+
   @override
   State<PhysicalActivityTab> createState() => _PhysicalActivityTabState();
 }
@@ -104,6 +113,11 @@ class _PhysicalActivityTabState extends State<PhysicalActivityTab> {
     super.dispose();
   }
 
+  // FIX: Just pop back, don't push or replace!
+  void goToCorrectHome(BuildContext context) {
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final chartLogs = activities.isNotEmpty
@@ -116,12 +130,7 @@ class _PhysicalActivityTabState extends State<PhysicalActivityTab> {
           icon: Icon(Icons.arrow_back),
           tooltip: 'Back to Home',
           onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => PatientHome(user: widget.user),
-              ),
-            );
+            goToCorrectHome(context);
           },
         ),
         title: Text('Physical Activity Tab'),

@@ -2,11 +2,18 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-import '../patient_home.dart';
+import '../patient_home_type1type2.dart';
+import '../patient_home_prediabetes.dart';
+import '../patient_home_gestational.dart';
+
+const String apiBase = "http://192.168.1.36:5000";
 
 class FAQTab extends StatefulWidget {
   final Map<String, dynamic> user;
-  const FAQTab({required this.user});
+  final String? diabetesType;
+  const FAQTab({required this.user, this.diabetesType, Key? key})
+      : super(key: key);
+
   @override
   State<FAQTab> createState() => _FAQTabState();
 }
@@ -50,52 +57,72 @@ class _FAQTabState extends State<FAQTab> {
     });
   }
 
+  // FIX: Just pop back, don't push or replace!
+  void goToCorrectHome(BuildContext context) {
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(18),
-      child: loadingFaqs
-          ? Center(child: CircularProgressIndicator())
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Frequently Asked Questions",
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 22,
-                      color: Colors.blue[900]),
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  decoration: InputDecoration(
-                      labelText: 'Search',
-                      prefixIcon: Icon(Icons.search),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16))),
-                  onChanged: filterFaqs,
-                ),
-                SizedBox(height: 18),
-                Expanded(
-                  child: filteredFaqs.isEmpty
-                      ? Center(
-                          child: Text(
-                            "No FAQs found.",
-                            style: TextStyle(
-                                fontSize: 18, color: Colors.grey[600]),
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          tooltip: 'Back to Home',
+          onPressed: () {
+            goToCorrectHome(context);
+          },
+        ),
+        title: Text('FAQs'),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+        elevation: 1,
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(18),
+        child: loadingFaqs
+            ? Center(child: CircularProgressIndicator())
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Frequently Asked Questions",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 22,
+                        color: Colors.blue[900]),
+                  ),
+                  SizedBox(height: 10),
+                  TextField(
+                    decoration: InputDecoration(
+                        labelText: 'Search',
+                        prefixIcon: Icon(Icons.search),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16))),
+                    onChanged: filterFaqs,
+                  ),
+                  SizedBox(height: 18),
+                  Expanded(
+                    child: filteredFaqs.isEmpty
+                        ? Center(
+                            child: Text(
+                              "No FAQs found.",
+                              style: TextStyle(
+                                  fontSize: 18, color: Colors.grey[600]),
+                            ),
+                          )
+                        : ListView.separated(
+                            itemCount: filteredFaqs.length,
+                            separatorBuilder: (_, __) => SizedBox(height: 12),
+                            itemBuilder: (context, idx) {
+                              final f = filteredFaqs[idx];
+                              return FAQCard(faq: f);
+                            },
                           ),
-                        )
-                      : ListView.separated(
-                          itemCount: filteredFaqs.length,
-                          separatorBuilder: (_, __) => SizedBox(height: 12),
-                          itemBuilder: (context, idx) {
-                            final f = filteredFaqs[idx];
-                            return FAQCard(faq: f);
-                          },
-                        ),
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+      ),
     );
   }
 }

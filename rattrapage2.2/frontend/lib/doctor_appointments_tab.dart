@@ -3,7 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-const String apiBase = "http://192.168.1.35:5000";
+// --- App color scheme (matches all pages) ---
+const Color kPastelBlue = Color(0xFF2CA7A3);
+const Color kPastelGreen = Color(0xFF4B8246);
+const Color kPastelPeach = Color(0xFFEB7B64);
+const Color kPastelYellow = Color(0xFFD1AC00);
+const Color kPastelLilac = Color(0xFF7A5FA0);
+const Color kMutedDarkGreen = Color(0xFF297A6C);
+const Color kBG = Colors.white;
+const Color kCardBG = Color(0xFFF7F7F7);
+
+const String apiBase = "http://192.168.1.36:5000";
 
 DateTime? parseDate(dynamic input) {
   if (input == null) return null;
@@ -59,7 +69,6 @@ class _DoctorAppointmentsTabState extends State<DoctorAppointmentsTab> {
         await http.get(Uri.parse("$apiBase/appointments/${widget.doctorId}"));
     if (!mounted) return;
     if (res.statusCode == 200) {
-      // Fix: Ensure patient_name and status are present
       appointments = List<Map<String, dynamic>>.from(jsonDecode(res.body));
     }
     setState(() => loadingAppointments = false);
@@ -68,14 +77,38 @@ class _DoctorAppointmentsTabState extends State<DoctorAppointmentsTab> {
   Future<void> _pickDateTime() async {
     final date = await showDatePicker(
       context: context,
-      initialDate: DateTime.now().add(Duration(days: 1)),
+      initialDate: DateTime.now().add(const Duration(days: 1)),
       firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: kPastelBlue,
+              onPrimary: Colors.white,
+              onSurface: kMutedDarkGreen,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (date == null) return;
     final time = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay(hour: 10, minute: 0),
+      initialTime: const TimeOfDay(hour: 10, minute: 0),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: kPastelBlue,
+              onPrimary: Colors.white,
+              onSurface: kMutedDarkGreen,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (time == null) return;
     setState(() {
@@ -118,13 +151,37 @@ class _DoctorAppointmentsTabState extends State<DoctorAppointmentsTab> {
       context: context,
       initialDate: currentDate,
       firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: kPastelLilac,
+              onPrimary: Colors.white,
+              onSurface: kMutedDarkGreen,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (newDate == null) return;
     TimeOfDay? newTime = await showTimePicker(
       context: context,
       initialTime:
           TimeOfDay(hour: currentDate.hour, minute: currentDate.minute),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: kPastelLilac,
+              onPrimary: Colors.white,
+              onSurface: kMutedDarkGreen,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (newTime == null) return;
     final newDateTime = DateTime(
@@ -150,7 +207,7 @@ class _DoctorAppointmentsTabState extends State<DoctorAppointmentsTab> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: Colors.deepPurple[50],
+      backgroundColor: kBG,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(
@@ -168,11 +225,12 @@ class _DoctorAppointmentsTabState extends State<DoctorAppointmentsTab> {
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.deepPurple[900],
+                  color: kMutedDarkGreen,
                 ),
               ),
               const SizedBox(height: 12),
               Card(
+                color: kCardBG,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -182,7 +240,9 @@ class _DoctorAppointmentsTabState extends State<DoctorAppointmentsTab> {
                   child: Column(
                     children: [
                       if (loadingPatients)
-                        Center(child: CircularProgressIndicator())
+                        Center(
+                            child: CircularProgressIndicator(
+                                color: kMutedDarkGreen))
                       else ...[
                         _buildPatientDropdown(),
                         const SizedBox(height: 12),
@@ -194,10 +254,10 @@ class _DoctorAppointmentsTabState extends State<DoctorAppointmentsTab> {
                           width: double.infinity,
                           child: ElevatedButton.icon(
                             onPressed: _schedule,
-                            icon: Icon(Icons.add),
+                            icon: Icon(Icons.add, color: Colors.white),
                             label: Text('Schedule'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.deepPurple,
+                              backgroundColor: kPastelBlue,
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12)),
@@ -218,27 +278,27 @@ class _DoctorAppointmentsTabState extends State<DoctorAppointmentsTab> {
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Colors.deepPurple[900],
+                  color: kMutedDarkGreen,
                 ),
               ),
               const SizedBox(height: 12),
 
               if (loadingAppointments)
-                Center(child: CircularProgressIndicator())
+                Center(child: CircularProgressIndicator(color: kMutedDarkGreen))
               else if (appointments.isEmpty)
                 Center(
                   child: Text(
                     'No appointments scheduled.',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.deepPurple[300],
+                      color: kMutedDarkGreen.withOpacity(0.38),
                     ),
                   ),
                 )
               else
                 ListView.builder(
                   shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
+                  physics: const NeverScrollableScrollPhysics(),
                   itemCount: appointments.length,
                   itemBuilder: (context, i) {
                     final a = appointments[i];
@@ -257,6 +317,13 @@ class _DoctorAppointmentsTabState extends State<DoctorAppointmentsTab> {
                         dt ?? DateTime.now(),
                         a['notes'] ?? '',
                       ),
+                      color: [
+                        kPastelBlue,
+                        kPastelGreen,
+                        kPastelLilac,
+                        kPastelPeach,
+                        kPastelYellow
+                      ][i % 5],
                     );
                   },
                 ),
@@ -270,11 +337,11 @@ class _DoctorAppointmentsTabState extends State<DoctorAppointmentsTab> {
   Widget _buildPatientDropdown() =>
       DropdownButtonFormField<Map<String, dynamic>>(
         value: selectedPatient,
-        hint: Text('Select Patient'),
+        hint: const Text('Select Patient'),
         decoration: InputDecoration(
-          prefixIcon: Icon(Icons.person, color: Colors.deepPurple),
+          prefixIcon: Icon(Icons.person, color: kPastelBlue),
           filled: true,
-          fillColor: Colors.white,
+          fillColor: kCardBG,
           border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none),
@@ -283,6 +350,8 @@ class _DoctorAppointmentsTabState extends State<DoctorAppointmentsTab> {
             .map((p) => DropdownMenuItem(value: p, child: Text(p['name'])))
             .toList(),
         onChanged: (v) => setState(() => selectedPatient = v),
+        dropdownColor: kCardBG,
+        style: TextStyle(color: kMutedDarkGreen),
       );
 
   Widget _buildDateField() => TextFormField(
@@ -294,28 +363,35 @@ class _DoctorAppointmentsTabState extends State<DoctorAppointmentsTab> {
         ),
         onTap: _pickDateTime,
         decoration: InputDecoration(
-          prefixIcon: Icon(Icons.calendar_today, color: Colors.deepPurple),
+          prefixIcon: Icon(Icons.calendar_today, color: kPastelLilac),
           hintText: 'Pick Date & Time',
           filled: true,
-          fillColor: Colors.white,
+          fillColor: kCardBG,
           border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none),
         ),
+        style: TextStyle(color: kMutedDarkGreen),
       );
 
   Widget _buildNotesField() => TextField(
         controller: notesCtrl,
         maxLines: 2,
         decoration: InputDecoration(
-          prefixIcon: Icon(Icons.note, color: Colors.deepPurple),
+          prefixIcon: Icon(Icons.note, color: kPastelPeach),
           labelText: 'Notes',
+          labelStyle: TextStyle(color: kMutedDarkGreen.withOpacity(0.8)),
           filled: true,
-          fillColor: Colors.white,
+          fillColor: kCardBG,
           border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: kPastelPeach, width: 2),
+          ),
         ),
+        style: TextStyle(color: kMutedDarkGreen),
       );
 }
 
@@ -326,6 +402,7 @@ class _AppointmentCard extends StatelessWidget {
   final String notes;
   final VoidCallback onCancel;
   final VoidCallback onReschedule;
+  final Color color;
 
   const _AppointmentCard({
     required this.patientName,
@@ -334,21 +411,22 @@ class _AppointmentCard extends StatelessWidget {
     required this.notes,
     required this.onCancel,
     required this.onReschedule,
+    required this.color,
     Key? key,
   }) : super(key: key);
 
   Color getStatusColor(String status) {
     switch (status) {
       case 'scheduled':
-        return Colors.green;
+        return kPastelGreen;
       case 'cancelled':
-        return Colors.red;
+        return kPastelPeach;
       case 'completed':
-        return Colors.blue;
+        return kPastelBlue;
       case 'rescheduled':
-        return Colors.orange;
+        return kPastelYellow;
       default:
-        return Colors.deepPurple;
+        return kPastelLilac;
     }
   }
 
@@ -358,6 +436,7 @@ class _AppointmentCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 3,
+      color: kCardBG,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -366,8 +445,8 @@ class _AppointmentCard extends StatelessWidget {
             Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: Colors.deepPurple[100],
-                  child: Icon(Icons.event, color: Colors.deepPurple),
+                  backgroundColor: color.withOpacity(0.19),
+                  child: Icon(Icons.event, color: color),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -376,7 +455,7 @@ class _AppointmentCard extends StatelessWidget {
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.deepPurple[800]),
+                        color: kMutedDarkGreen),
                   ),
                 ),
               ],
@@ -384,7 +463,7 @@ class _AppointmentCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               dateTime,
-              style: TextStyle(color: Colors.deepPurple[400]),
+              style: TextStyle(color: color, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 4),
             Text(
@@ -395,7 +474,7 @@ class _AppointmentCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 notes,
-                style: TextStyle(fontSize: 14, color: Colors.black87),
+                style: TextStyle(fontSize: 14, color: kMutedDarkGreen),
               ),
             ],
             const SizedBox(height: 10),
@@ -403,23 +482,24 @@ class _AppointmentCard extends StatelessWidget {
               children: [
                 ElevatedButton.icon(
                   onPressed: onReschedule,
-                  icon: Icon(Icons.edit_calendar, size: 18),
-                  label: Text('Reschedule'),
+                  icon:
+                      Icon(Icons.edit_calendar, size: 18, color: Colors.white),
+                  label: const Text('Reschedule'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange[400],
+                    backgroundColor: kPastelYellow,
                     foregroundColor: Colors.white,
-                    minimumSize: Size(100, 36),
+                    minimumSize: const Size(100, 36),
                   ),
                 ),
                 const SizedBox(width: 10),
                 ElevatedButton.icon(
                   onPressed: onCancel,
-                  icon: Icon(Icons.cancel, size: 18),
-                  label: Text('Cancel'),
+                  icon: Icon(Icons.cancel, size: 18, color: Colors.white),
+                  label: const Text('Cancel'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red[400],
+                    backgroundColor: kPastelPeach,
                     foregroundColor: Colors.white,
-                    minimumSize: Size(90, 36),
+                    minimumSize: const Size(90, 36),
                   ),
                 ),
               ],

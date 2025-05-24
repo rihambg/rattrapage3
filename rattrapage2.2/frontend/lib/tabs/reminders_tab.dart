@@ -5,16 +5,20 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 import 'package:timezone/timezone.dart' as tz;
 
-import '../patient_home.dart';
+import '../patient_home_type1type2.dart';
+import '../patient_home_prediabetes.dart';
+import '../patient_home_gestational.dart';
 
-const String apiBase = "http://192.168.1.35:5000";
+const String apiBase = "http://192.168.1.36:5000";
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
 class RemindersTab extends StatefulWidget {
   final Map<String, dynamic> user;
-  const RemindersTab({required this.user});
+  final String? diabetesType;
+  const RemindersTab({required this.user, this.diabetesType, Key? key})
+      : super(key: key);
   @override
   State<RemindersTab> createState() => _RemindersTabState();
 }
@@ -203,6 +207,11 @@ class _RemindersTabState extends State<RemindersTab> {
     }
   }
 
+  // FIX: Just pop back, don't push or replace!
+  void goToCorrectHome(BuildContext context) {
+    Navigator.pop(context);
+  }
+
   @override
   void dispose() {
     remTitleCtrl.dispose();
@@ -218,12 +227,7 @@ class _RemindersTabState extends State<RemindersTab> {
           icon: Icon(Icons.arrow_back),
           tooltip: 'Back to Home',
           onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => PatientHome(user: widget.user),
-              ),
-            );
+            goToCorrectHome(context);
           },
         ),
         title: Text('Reminders Tab'),

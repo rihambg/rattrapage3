@@ -4,13 +4,17 @@ import 'package:http/http.dart' as http;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 
-import '../patient_home.dart';
+import '../patient_home_type1type2.dart';
+import '../patient_home_prediabetes.dart';
+import '../patient_home_gestational.dart';
 
-const String apiBase = "http://192.168.1.35:5000";
+const String apiBase = "http://192.168.1.36:5000";
 
 class GlucoseTab extends StatefulWidget {
   final Map<String, dynamic> user;
-  const GlucoseTab({required this.user});
+  final String? diabetesType;
+  const GlucoseTab({required this.user, this.diabetesType, Key? key})
+      : super(key: key);
 
   @override
   State<GlucoseTab> createState() => _GlucoseTabState();
@@ -216,6 +220,41 @@ class _GlucoseTabState extends State<GlucoseTab> {
     fetchDailyCount();
   }
 
+  void goToCorrectHome(BuildContext context) {
+    final type =
+        widget.diabetesType?.toLowerCase() ?? diabetesType.toLowerCase();
+    final user = widget.user;
+    if (type == "type 1" || type == "type 2") {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PatientHomeType1Type2(user: user),
+        ),
+      );
+    } else if (type == "prediabetes") {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PatientHomePrediabetes(user: user),
+        ),
+      );
+    } else if (type == "gestational") {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PatientHomeGestational(user: user),
+        ),
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PatientHomeType1Type2(user: user),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final chartLogs = glucoseLogs.take(7).toList().reversed.toList();
@@ -236,12 +275,7 @@ class _GlucoseTabState extends State<GlucoseTab> {
           icon: Icon(Icons.arrow_back),
           tooltip: 'Back to Home',
           onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => PatientHome(user: widget.user),
-              ),
-            );
+            goToCorrectHome(context);
           },
         ),
         title: Text('Glucose Tab'),
@@ -293,7 +327,8 @@ class _GlucoseTabState extends State<GlucoseTab> {
                                   color: Colors.deepOrange),
                             ),
                             SizedBox(height: 6),
-                            if (diabetesType.toLowerCase() == "prediabetes") ...[
+                            if (diabetesType.toLowerCase() ==
+                                "prediabetes") ...[
                               Text("Fasting: 0"),
                               Text("Not Fasting: 0"),
                               Text("Other: 0"),
@@ -366,7 +401,8 @@ class _GlucoseTabState extends State<GlucoseTab> {
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
             elevation: 3,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 18),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 18.0, vertical: 18),
               child: Row(
                 children: [
                   Expanded(
@@ -386,7 +422,8 @@ class _GlucoseTabState extends State<GlucoseTab> {
                     value: glucoseContext,
                     onChanged: (v) => setState(() => glucoseContext = v!),
                     items: [
-                      DropdownMenuItem(value: "Fasting", child: Text("Fasting")),
+                      DropdownMenuItem(
+                          value: "Fasting", child: Text("Fasting")),
                       DropdownMenuItem(
                           value: "Post-meal", child: Text("Post-meal")),
                       DropdownMenuItem(value: "Other", child: Text("Other")),
@@ -412,8 +449,8 @@ class _GlucoseTabState extends State<GlucoseTab> {
           if (chartLogs.length > 1)
             Card(
               color: Colors.white,
-              shape:
-                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18)),
               elevation: 4,
               child: Padding(
                 padding: const EdgeInsets.all(18.0),
@@ -462,10 +499,10 @@ class _GlucoseTabState extends State<GlucoseTab> {
                             },
                           ),
                         ),
-                        topTitles:
-                            AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                        rightTitles:
-                            AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        topTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false)),
+                        rightTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false)),
                       ),
                       borderData: FlBorderData(show: false),
                       lineBarsData: [
@@ -478,8 +515,8 @@ class _GlucoseTabState extends State<GlucoseTab> {
                             ),
                           ),
                           isCurved: true,
-                          gradient:
-                              LinearGradient(colors: [Colors.red, Colors.orange]),
+                          gradient: LinearGradient(
+                              colors: [Colors.red, Colors.orange]),
                           barWidth: 4,
                           dotData: FlDotData(
                             show: true,
@@ -533,7 +570,8 @@ class _GlucoseTabState extends State<GlucoseTab> {
               child: Scrollbar(
                 child: ListView.separated(
                   itemCount: glucoseLogs.length,
-                  separatorBuilder: (_, __) => Divider(height: 1, thickness: 0.4),
+                  separatorBuilder: (_, __) =>
+                      Divider(height: 1, thickness: 0.4),
                   itemBuilder: (context, i) {
                     final g = glucoseLogs[i];
                     return Card(
@@ -560,7 +598,8 @@ class _GlucoseTabState extends State<GlucoseTab> {
                                     "Are you sure you want to delete this glucose log?"),
                                 actions: [
                                   TextButton(
-                                      onPressed: () => Navigator.pop(ctx, false),
+                                      onPressed: () =>
+                                          Navigator.pop(ctx, false),
                                       child: Text("Cancel")),
                                   ElevatedButton(
                                     style: ElevatedButton.styleFrom(

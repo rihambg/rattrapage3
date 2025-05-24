@@ -13,9 +13,10 @@ import 'tabs/chat_tab.dart';
 import 'tabs/articles_tab.dart';
 import 'tabs/challenges_tab.dart';
 import 'tabs/faq_tab.dart';
+import 'tabs/pregnancy_tab.dart';
 import 'dart:ui' as ui;
 
-const String apiBase = "http://192.168.1.35:5000";
+const String apiBase = "http://192.168.1.36:5000";
 
 class PatientHome extends StatefulWidget {
   final Map<String, dynamic> user;
@@ -200,6 +201,21 @@ class _PatientHomeState extends State<PatientHome> {
     );
   }
 
+  Widget buildPregnancyTrackedCard() {
+    return buildDashboardBox(
+      icon: Icons.pregnant_woman,
+      title: "Pregnancy Tracked",
+      color: const Color(0xFFFFE0B2),
+      child: Text(
+        "View and track your pregnancy health.",
+        style: TextStyle(color: Colors.orange[900], fontSize: 13),
+      ),
+      onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => PregnancyTab(user: widget.user))),
+      sentence: "Track pregnancy and view insights.",
+    );
+  }
+
   Widget buildCustomNavBar() {
     final List<IconData> icons = [
       Icons.home_rounded,
@@ -335,234 +351,260 @@ class _PatientHomeState extends State<PatientHome> {
       ChatTab(user: widget.user, myDoctor: myDoctor),
     ];
 
+    String diabetesTypeRaw = (widget.user['diabetes_type'] ?? '').toString();
+    String diabetesType = diabetesTypeRaw.toLowerCase().trim();
+
+    // Debug print. Remove this after testing.
+    print(
+        'DEBUG diabetes_type: "$diabetesTypeRaw" | normalized: "$diabetesType"');
+
+    // Robust checks
+    // Prediabetic: "pre" and "diab" (anywhere, any order)
+    bool isPrediabetic =
+        diabetesType.contains('pre') && diabetesType.contains('diab');
+    // Gestational: "gestat" (anywhere, covers gestational/gestationnel/etc)
+    bool isGestational = diabetesType.contains('gestat');
+    // Only for reference, not used in card logic:
+    bool isType1 = diabetesType.contains('type 1') || diabetesType == "1";
+    bool isType2 = diabetesType.contains('type 2') || diabetesType == "2";
+
+    // Compose dashboard cards according to type
+    final List<Widget> dashboardCards = [
+      // Show glucose and medication cards for ALL except prediabetic!
+      if (!isPrediabetic)
+        buildDashboardBox(
+          icon: Icons.bloodtype_rounded,
+          title: "Latest Glucose",
+          color: const Color(0xFFFED9E1),
+          child: latestGlucose != null
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "${latestGlucose!['glucose_level']} mg/dL",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        color: Colors.pink[800],
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      "${latestGlucose!['timestamp'] ?? ''}",
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                )
+              : const Text(
+                  "No recent glucose reading.",
+                  style: TextStyle(color: Colors.grey, fontSize: 13),
+                ),
+          onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => GlucoseTab(user: widget.user))),
+          sentence: "Log blood glucose, view trends and alerts.",
+        ),
+      buildDashboardBox(
+        icon: Icons.calendar_today_rounded,
+        title: "Appointments",
+        color: const Color(0xFFE4D5F5),
+        child: const Text(
+          "Review, reschedule, or cancel your appointments.",
+          style: TextStyle(color: Colors.grey, fontSize: 13),
+        ),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) =>
+                PatientAppointmentsTab(patientId: widget.user['id']))),
+        sentence: "View and manage your appointments.",
+      ),
+      if (!isPrediabetic)
+        buildDashboardBox(
+          icon: Icons.medical_services_rounded,
+          title: "Current Medication",
+          color: const Color(0xFFD6EAF8),
+          child: latestMedication != null
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "${latestMedication!['med_name']} (${latestMedication!['dosage']})",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        color: Colors.blue[900],
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      "${latestMedication!['prescribed_at'] ?? ''}",
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                )
+              : const Text(
+                  "No medications found.",
+                  style: TextStyle(color: Colors.grey, fontSize: 13),
+                ),
+          onTap: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => MedicationsTab(user: widget.user))),
+          sentence: "See or update your medicines and doses.",
+        ),
+      buildDashboardBox(
+        icon: Icons.fastfood_rounded,
+        title: "Last Meal",
+        color: const Color(0xFFFFF6D6),
+        child: latestMeal != null
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "${latestMeal!['description']} (${latestMeal!['meal_type']})",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      color: Colors.orange[800],
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    "${latestMeal!['timestamp'] ?? ''}",
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              )
+            : const Text(
+                "No meals logged.",
+                style: TextStyle(color: Colors.grey, fontSize: 13),
+              ),
+        onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => MealsTab(user: widget.user))),
+        sentence: "Log meals and see your meal history.",
+      ),
+      buildDashboardBox(
+        icon: Icons.directions_run_rounded,
+        title: "Latest Activity",
+        color: const Color(0xFFD6F5E3),
+        child: latestActivity != null
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "${latestActivity!['activity_type']} (${latestActivity!['duration_minutes']} min)",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      color: Colors.teal[800],
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    "${latestActivity!['timestamp'] ?? ''}",
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              )
+            : const Text(
+                "No recent activity.",
+                style: TextStyle(color: Colors.grey, fontSize: 13),
+              ),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => PhysicalActivityTab(user: widget.user))),
+        sentence: "Log physical activity and view stats.",
+      ),
+      buildDashboardBox(
+        icon: Icons.alarm_rounded,
+        title: "Reminders",
+        color: const Color(0xFFD6EAF8),
+        child: latestReminders.isNotEmpty
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: latestReminders
+                    .map(
+                      (r) => Padding(
+                        padding: const EdgeInsets.only(bottom: 2.0),
+                        child: Text(
+                          "${r['title']} @ ${r['time']} (${r['frequency']})",
+                          style: const TextStyle(
+                            color: Colors.blue,
+                            fontSize: 13,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    )
+                    .toList(),
+              )
+            : const Text(
+                "No reminders set.",
+                style: TextStyle(color: Colors.grey, fontSize: 13),
+              ),
+        onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => RemindersTab(user: widget.user))),
+        sentence: "Set and manage reminders easily.",
+      ),
+      buildDashboardBox(
+        icon: Icons.local_hospital_rounded,
+        title: "My Doctor",
+        color: const Color(0xFFE4D5F5),
+        child: myDoctor != null
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    myDoctor!['name'] ?? '',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      color: Colors.purple[800],
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    myDoctor!['specialty'] ?? '',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              )
+            : const Text(
+                "No doctor assigned.",
+                style: TextStyle(color: Colors.grey, fontSize: 13),
+              ),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => DoctorTab(
+                  user: widget.user,
+                  myDoctor: myDoctor,
+                  onDoctorChanged: () {
+                    fetchMyDoctor();
+                    fetchDashboardData();
+                  },
+                ))),
+        sentence: "Contact or change your doctor.",
+      ),
+      if (isGestational) buildPregnancyTrackedCard(),
+    ];
+
     final dashboard = RefreshIndicator(
       onRefresh: () async => fetchDashboardData(),
       child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         children: [
           const SizedBox(height: 12),
-          buildDashboardBox(
-            icon: Icons.bloodtype_rounded,
-            title: "Latest Glucose",
-            color: const Color(0xFFFED9E1),
-            child: latestGlucose != null
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "${latestGlucose!['glucose_level']} mg/dL",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                          color: Colors.pink[800],
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        "${latestGlucose!['timestamp'] ?? ''}",
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  )
-                : const Text(
-                    "No recent glucose reading.",
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
-                  ),
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => GlucoseTab(user: widget.user))),
-            sentence: "Log blood glucose, view trends and alerts.",
-          ),
-          buildDashboardBox(
-            icon: Icons.calendar_today_rounded,
-            title: "Appointments",
-            color: const Color(0xFFE4D5F5),
-            child: const Text(
-              "Review, reschedule, or cancel your appointments.",
-              style: TextStyle(color: Colors.grey, fontSize: 13),
-            ),
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) =>
-                    PatientAppointmentsTab(patientId: widget.user['id']))),
-            sentence: "View and manage your appointments.",
-          ),
-          buildDashboardBox(
-            icon: Icons.medical_services_rounded,
-            title: "Current Medication",
-            color: const Color(0xFFD6EAF8),
-            child: latestMedication != null
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "${latestMedication!['med_name']} (${latestMedication!['dosage']})",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                          color: Colors.blue[900],
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        "${latestMedication!['prescribed_at'] ?? ''}",
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  )
-                : const Text(
-                    "No medications found.",
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
-                  ),
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => MedicationsTab(user: widget.user))),
-            sentence: "See or update your medicines and doses.",
-          ),
-          buildDashboardBox(
-            icon: Icons.fastfood_rounded,
-            title: "Last Meal",
-            color: const Color(0xFFFFF6D6),
-            child: latestMeal != null
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "${latestMeal!['description']} (${latestMeal!['meal_type']})",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                          color: Colors.orange[800],
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        "${latestMeal!['timestamp'] ?? ''}",
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  )
-                : const Text(
-                    "No meals logged.",
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
-                  ),
-            onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => MealsTab(user: widget.user))),
-            sentence: "Log meals and see your meal history.",
-          ),
-          buildDashboardBox(
-            icon: Icons.directions_run_rounded,
-            title: "Latest Activity",
-            color: const Color(0xFFD6F5E3),
-            child: latestActivity != null
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "${latestActivity!['activity_type']} (${latestActivity!['duration_minutes']} min)",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                          color: Colors.teal[800],
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        "${latestActivity!['timestamp'] ?? ''}",
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  )
-                : const Text(
-                    "No recent activity.",
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
-                  ),
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => PhysicalActivityTab(user: widget.user))),
-            sentence: "Log physical activity and view stats.",
-          ),
-          buildDashboardBox(
-            icon: Icons.alarm_rounded,
-            title: "Reminders",
-            color: const Color(0xFFD6EAF8),
-            child: latestReminders.isNotEmpty
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: latestReminders
-                        .map(
-                          (r) => Padding(
-                            padding: const EdgeInsets.only(bottom: 2.0),
-                            child: Text(
-                              "${r['title']} @ ${r['time']} (${r['frequency']})",
-                              style: const TextStyle(
-                                color: Colors.blue,
-                                fontSize: 13,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        )
-                        .toList(),
-                  )
-                : const Text(
-                    "No reminders set.",
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
-                  ),
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => RemindersTab(user: widget.user))),
-            sentence: "Set and manage reminders easily.",
-          ),
-          buildDashboardBox(
-            icon: Icons.local_hospital_rounded,
-            title: "My Doctor",
-            color: const Color(0xFFE4D5F5),
-            child: myDoctor != null
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        myDoctor!['name'] ?? '',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                          color: Colors.purple[800],
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        myDoctor!['specialty'] ?? '',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  )
-                : const Text(
-                    "No doctor assigned.",
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
-                  ),
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => DoctorTab(
-                      user: widget.user,
-                      myDoctor: myDoctor,
-                      onDoctorChanged: () {
-                        fetchMyDoctor();
-                        fetchDashboardData();
-                      },
-                    ))),
-            sentence: "Contact or change your doctor.",
-          ),
+          ...dashboardCards,
         ],
       ),
     );
